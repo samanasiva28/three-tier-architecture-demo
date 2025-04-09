@@ -24,7 +24,7 @@ WORKDIR /app
 # Copy composer files — allow composer.lock to be optional
 COPY html/composer.json ./
 # Use optional lock file if it exists
-COPY html/composer.lock ./ || true
+COPY html/composer.lock ./ 
 
 # Install PHP dependencies
 RUN composer install --no-dev --no-interaction --prefer-dist || composer install
