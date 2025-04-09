@@ -1,5 +1,5 @@
 # ---- Base PHP Apache Stage ----
-FROM php:7.4-apache AS base
+FROM php:8.1-apache AS base
 
 # Install required dependencies and enable Apache/PHP modules
 RUN apt-get update && apt-get install -yqq unzip libzip-dev \
