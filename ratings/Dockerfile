@@ -1,51 +1,34 @@
+#
+# Build the app
+#
 # ---- Base PHP Apache Stage ----
 FROM php:8.1-apache AS base
 
-# Install required dependencies and enable Apache/PHP modules
-RUN apt-get update && apt-get install -yqq unzip libzip-dev \
-    && docker-php-ext-install pdo_mysql opcache zip \
-    && a2enmod rewrite status \
-    && rm -rf /var/lib/apt/lists/*
 
-# Enable Instana PHP AutoProfile (optional)
+RUN apt-get update && apt-get install -yqq unzip libzip-dev \
+    && docker-php-ext-install pdo_mysql opcache zip
+
+# Enable AutoProfile for PHP which is currently opt-in beta
 RUN echo "instana.enable_auto_profile=1" > "/usr/local/etc/php/conf.d/zzz-instana-extras.ini"
 
-# Set working directory
-WORKDIR /var/www/html
-
-# Copy Apache status config
+# relax permissions on status
 COPY status.conf /etc/apache2/mods-available/status.conf
-
-# ---- Composer Dependencies Stage ----
-FROM composer:latest AS composer_stage
-
-WORKDIR /app
-
-# Copy composer files
-COPY html/composer.json ./
-COPY html/composer.lock ./  # ✅ You now have this file
-
-# Install PHP dependencies
-RUN composer install --no-dev --no-interaction --prefer-dist
-
-# ---- Final Application Stage ----
-FROM base AS final
+# Enable Apache mod_rewrite and status
+RUN a2enmod rewrite && a2enmod status
 
 WORKDIR /var/www/html
 
-# Copy application source
-COPY --chown=www-data:www-data html/ /var/www/html
+COPY html/ /var/www/html
 
-# Copy vendor folder from composer build
-COPY --from=composer_stage /app/vendor /var/www/html/vendor
+COPY --from=composer /usr/bin/composer /usr/bin/composer
+RUN composer install
 
-# Set file permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html
+# This is important. Symfony needs write permissions and we
+# dont know the context in which the container will run, i.e.
+# which user will be forced from the outside so better play
+# safe for this simple demo.
+RUN rm -Rf /var/www/var/*
+RUN chown -R www-data /var/www
+RUN chmod -R 777 /var/www
 
-# Expose Apache port
-EXPOSE 80
-
-# Start Apache
-CMD ["apache2-foreground"]
 
