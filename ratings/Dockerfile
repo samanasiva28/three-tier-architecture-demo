@@ -21,13 +21,13 @@ FROM composer:latest AS composer_stage
 
 WORKDIR /app
 
-# Copy composer files — allow composer.lock to be optional
-COPY html/composer.json ./
-# Use optional lock file if it exists
-COPY html/composer.lock ./ 
+# Copy composer files if they exist (only composer.json is required)
+COPY html/composer.json ./ 
+COPY html/composer.lock ./ || true
 
 # Install PHP dependencies
-RUN composer install --no-dev --no-interaction --prefer-dist || composer install
+RUN if [ -f composer.lock ]; then composer install --no-dev --no-interaction --prefer-dist; \
+    else composer install --no-dev --no-interaction --prefer-dist; fi
 
 # ---- Final Application Stage ----
 FROM base AS final
@@ -49,4 +49,3 @@ EXPOSE 80
 
 # Start Apache
 CMD ["apache2-foreground"]
-
