@@ -25,11 +25,11 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: emailservice
+      app: cartservice
   template:
     metadata:
       labels:
-        app: emailservice
+        app: cartservice
     spec:
       serviceAccountName: default
       terminationGracePeriodSeconds: 5
@@ -47,7 +47,7 @@ spec:
               - ALL
           privileged: false
           readOnlyRootFilesystem: true
-        image: sivasai2003/emailservice:v5
+        image: sivasai2003/cart:latest
         ports:
         - containerPort: 8080
         env:
@@ -74,11 +74,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: emailservice
+  name: cartservice
 spec:
   type: ClusterIP
   selector:
-    app: emailservice
+    app: cartservice
   ports:
   - name: grpc
     port: 5000
@@ -87,15 +87,15 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: checkoutservice
+  name: catalogueservice
 spec:
   selector:
     matchLabels:
-      app: checkoutservice
+      app: catalogueservice
   template:
     metadata:
       labels:
-        app: checkoutservice
+        app: catalogueservice
     spec:
       serviceAccountName: default
       securityContext:
@@ -112,7 +112,7 @@ spec:
                 - ALL
             privileged: false
             readOnlyRootFilesystem: true
-          image: sivasai2003/checkoutservice:v3
+          image: sivasai2003/catalogue:latest
           ports:
           - containerPort: 5050
           readinessProbe:
@@ -147,11 +147,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: checkoutservice
+  name: catalogueservice
 spec:
   type: ClusterIP
   selector:
-    app: checkoutservice
+    app: catalogueservice
   ports:
   - name: grpc
     port: 5050
@@ -186,7 +186,7 @@ spec:
               - ALL
           privileged: false
           readOnlyRootFilesystem: true
-        image: sivasai2003/recommendationservice:v9
+        image: sivasai2003/dispatch:latest
         ports:
         - containerPort: 8080
         readinessProbe:
@@ -255,7 +255,7 @@ spec:
                 - ALL
             privileged: false
             readOnlyRootFilesystem: true
-          image: sivasai2003/frontend:v1
+          image: sivasai2003/fluentd:latest
           ports:
           - containerPort: 8080
           readinessProbe:
@@ -364,7 +364,7 @@ spec:
               - ALL
           privileged: false
           readOnlyRootFilesystem: true
-        image: sivasai2003/paymentservice:v7
+        image: sivasai2003/loadgen:latest
         ports:
         - containerPort: 50051
         env:
@@ -428,7 +428,7 @@ spec:
               - ALL
           privileged: false
           readOnlyRootFilesystem: true
-        image: sivasai2003/productcatalogservice:v8
+        image: sivasai2003/mongo:latest
         ports:
         - containerPort: 3550
         env:
@@ -492,7 +492,7 @@ spec:
               - ALL
           privileged: false
           readOnlyRootFilesystem: true
-        image: sivasai2003/cartservice:latest
+        image: sivasai2003/mysql:latest
         ports:
         - containerPort: 7070
         env:
@@ -584,7 +584,7 @@ spec:
               - ALL
           privileged: false
           readOnlyRootFilesystem: true
-        image: sivasai2003/loadgenerator:v6
+        image: sivasai2003/payment:latest
         env:
         - name: FRONTEND_ADDR
           value: "frontend:80"
@@ -627,7 +627,7 @@ spec:
               - ALL
           privileged: false
           readOnlyRootFilesystem: true
-        image: sivasai2003/currencyservice:v4
+        image: sivasai2003/ratings:latest
         ports:
         - name: grpc
           containerPort: 7000
@@ -691,7 +691,7 @@ spec:
               - ALL
           privileged: false
           readOnlyRootFilesystem: true
-        image: sivasai2003/shippingservice:v10
+        image: sivasai2003/shipping:latest
         ports:
         - containerPort: 50051
         env:
@@ -821,7 +821,7 @@ spec:
               - ALL
           privileged: false
           readOnlyRootFilesystem: true
-        image: sivasai2003/adservice:latest
+        image: sivasai2003/user:latest
         ports:
         - containerPort: 9555
         env:
@@ -858,3 +858,71 @@ spec:
     port: 9555
     targetPort: 9555
 # [END gke_release_kubernetes_manifests_microservices_demo]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adservice
+spec:
+  selector:
+    matchLabels:
+      app: adservice
+  template:
+    metadata:
+      labels:
+        app: adservice
+    spec:
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 5
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+      - name: server
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+        image: sivasai2003/web:latest
+        ports:
+        - containerPort: 9555
+        env:
+        - name: PORT
+          value: "9555"
+        resources:
+          requests:
+            cpu: 200m
+            memory: 180Mi
+          limits:
+            cpu: 300m
+            memory: 300Mi
+        readinessProbe:
+          initialDelaySeconds: 20
+          periodSeconds: 15
+          grpc:
+            port: 9555
+        livenessProbe:
+          initialDelaySeconds: 20
+          periodSeconds: 15
+          grpc:
+            port: 9555
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: adservice
+spec:
+  type: ClusterIP
+  selector:
+    app: adservice
+  ports:
+  - name: grpc
+    port: 9555
+    targetPort: 9555
+# [END gke_release_kubernetes_manifests_microservices_demo]
+
