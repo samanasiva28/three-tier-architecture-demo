@@ -2,7 +2,7 @@
 # Build the app
 #
 # ---- Base PHP Apache Stage ----
-FROM php:8.1-apache AS base
+FROM php:7.4-apache AS base
 
 
 RUN apt-get update && apt-get install -yqq unzip libzip-dev \
