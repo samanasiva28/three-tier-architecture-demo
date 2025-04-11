@@ -8,7 +8,7 @@ ENV GO111MODULE=on
 WORKDIR /go/src/app
 
 # Copy your Go files into the image
-COPY *.go .
+COPY .  .
 
 # Initialize Go modules and fetch dependencies
 RUN go mod init dispatch && go mod tidy
