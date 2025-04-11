@@ -20,5 +20,4 @@ RUN go build -o dispatch
 EXPOSE 8080
 
 # Run the compiled binary
-CMD ["./dispatch"]
-
+CMD ["/go/src/app/dispatch"]
